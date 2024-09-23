@@ -42,6 +42,13 @@ class json {
     Value data;  // Data stored in json object
 
     // Helper functions
+    // void from_json(const json& j, _null& value);
+    // void from_json(const json& j, _bool& value);
+    // void from_json(const json& j, _int& value);
+    // void from_json(const json& j, _float& value);
+    // void from_json(const json& j, _string& value);
+    // void from_json(const json& j, _array& value);
+    // void from_json(const json& j, _object& value);
 
    public:
     // Constructors
@@ -68,31 +75,6 @@ class json {
     Type get_type() const;
     std::string get_type_as_string() const;
     Value get_data() const;
-
-    // template <class T>
-    // T get() {
-    //     return std::visit(
-    //         [](auto&& arg) -> T {
-    //             using ArgType = decltype(arg);
-    //             if constexpr (std::is_same_v<T, ArgType>) {
-    //                 return arg;
-    //             } else {
-    //                 T result;
-    //                 from_json(arg, result);
-    //                 return result;
-    //             }
-    //         },
-    //         data);
-    // }
-
-    // template <class T>
-    // void get_to(T& other) const {
-    //     if (std::holds_alternative<T>(data)) {
-    //         other = std::get<T>(data);
-    //     } else {
-    //         throw std::runtime_error("Error: invalid type");
-    //     }
-    // }
 
     auto to_array() const -> _array {
         if (type == Type::_array) {
@@ -122,6 +104,43 @@ class json {
     std::string dump() const;
 };
 // Helper functions
+// void json::from_json(const json& j, _null& value) { value = _null(); }
+
+// void json::from_json(const json& j, _bool& value) {
+//     if (std::holds_alternative<_bool>(j.data)) {
+//         value = std::get<_bool>(j.data);
+//     }
+// }
+
+// void json::from_json(const json& j, _int& value) {
+//     if (std::holds_alternative<_int>(j.data)) {
+//         value = std::get<_int>(j.data);
+//     }
+// }
+
+// void json::from_json(const json& j, _float& value) {
+//     if (std::holds_alternative<_float>(j.data)) {
+//         value = std::get<_float>(j.data);
+//     }
+// }
+
+// void json::from_json(const json& j, _string& value) {
+//     if (std::holds_alternative<_string>(j.data)) {
+//         value = std::get<_string>(j.data);
+//     }
+// }
+
+// void json::from_json(const json& j, _array& value) {
+//     if (std::holds_alternative<_array>(j.data)) {
+//         value = std::get<_array>(j.data);
+//     }
+// }
+
+// void json::from_json(const json& j, _object& value) {
+//     if (std::holds_alternative<_object>(j.data)) {
+//         value = std::get<_object>(j.data);
+//     }
+// }
 
 // Constructors
 json& json::operator=(const json& other) {
@@ -363,5 +382,22 @@ json parse(const char* str) { return parse(std::string(str)); }
 json make_json(const std::string& str) { return parse(str); }
 
 json make_json(const char* str) { return parse(str); }
+
+// myjson::get<type>(j)
+// template <class T>
+// T get(const json& j) {
+//     return std::visit(
+//         [](auto&& arg) -> T {
+//             using ArgType = decltype(arg);
+//             if constexpr (std::is_same_v<T, ArgType>) {
+//                 return arg;
+//             } else {
+//                 T result;
+//                 from_json(arg, result);
+//                 return result;
+//             }
+//         },
+//         j.get_data());
+// }
 
 }  // namespace myjson
