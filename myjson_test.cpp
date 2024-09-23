@@ -7,29 +7,28 @@ myjson::json foo() { return myjson::json(); }
 int main() {
     // Test default constructor
     myjson::json j1;
-    std::cout << "Default constructor: " << j1.get_type() << std::endl;
+    std::cout << "j1: " << j1 << std::endl;
 
-    // Test Bool constructor
-    myjson::json j2(true);
-    std::cout << "Bool constructor: " << j2.get_type() << " - "
-              << std::get<myjson::Bool>(j2.get_data()) << std::endl;
+    // Test parse function
+    myjson::json j2 = myjson::parse("{\"key\": \"value\"}");
+    std::cout << "j2: " << j2 << std::endl;
 
-    // Test Int constructor
-    int64_t i = 42;
-    myjson::json j5(i);
-    std::cout << "Int constructor: " << j5.get_type() << " - "
-              << std::get<myjson::Int>(j5.get_data()) << std::endl;
+    // Test make_json function
+    myjson::json j3 = myjson::make_json("{\"key\": \"value\"}");
+    std::cout << "j3: " << j3 << std::endl;
 
-    // // Test Float constructor
-    myjson::json j3(3.14);
-    std::cout << "Float constructor: " << j3.get_type() << " - "
-              << std::get<myjson::Float>(j3.get_data()) << std::endl;
+    myjson::json j4 = myjson::make_json("{\"key\": \"value\"}");
+    std::cout << "type of j4: " << j4.get_type_as_string() << std::endl;
 
-    // // Test String constructor
-    myjson::json j4("hello");
-    std::cout << "String constructor: " << j4.get_type() << " - "
-              << std::get<myjson::String>(j4.get_data()) << std::endl;
+    myjson::json j5 = myjson::make_json("{\"key\": \"value\"}");
+    j5["name"] = "myjson";
+    j5["age"] = 20;
 
-    std::cout << "hello, world!" << std::endl;
+    j2["j1"] = j1;
+    j3["j2"] = j2;
+    j4["j3"] = j3;
+    j5["j4"] = j4;
+    std::cout << "j5: " << j5 << std::endl;
+
     return 0;
 }

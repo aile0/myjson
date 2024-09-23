@@ -15,6 +15,9 @@ int main() {
     // j1.get_type();
     // return std::string of the object j type
 
+    // j1.get_type_as_string();
+    // return std::string of the object j type
+
     // j1.get_data();
     // return std::variant of the object j data
 
