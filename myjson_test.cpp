@@ -29,5 +29,7 @@ int main() {
     myjson::json j4("hello");
     std::cout << "String constructor: " << j4.get_type() << " - "
               << std::get<myjson::String>(j4.get_data()) << std::endl;
+
+    std::cout << "hello, world!" << std::endl;
     return 0;
 }
