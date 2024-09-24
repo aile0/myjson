@@ -42,13 +42,27 @@ class json {
     Value data;  // Data stored in json object
 
     // Helper functions
-    // void from_json(const json& j, _null& value);
-    // void from_json(const json& j, _bool& value);
-    // void from_json(const json& j, _int& value);
-    // void from_json(const json& j, _float& value);
-    // void from_json(const json& j, _string& value);
-    // void from_json(const json& j, _array& value);
-    // void from_json(const json& j, _object& value);
+    void from_json(const json& j, _null& value);
+    void from_json(const json& j, bool& value);
+    void from_json(const json& j, int& value);
+    void from_json(const json& j, int64_t& value);
+    void from_json(const json& j, float& value);
+    void from_json(const json& j, double& value);
+    void from_json(const json& j, std::string& value);
+    void from_json(const json& j, char* value);
+    void from_json(const json& j, _array& value);
+    void from_json(const json& j, _object& value);
+
+    void to_json(json& j, const _null& value);
+    void to_json(json& j, bool value);
+    void to_json(json& j, int value);
+    void to_json(json& j, int64_t value);
+    void to_json(json& j, float value);
+    void to_json(json& j, double value);
+    void to_json(json& j, const std::string& value);
+    void to_json(json& j, const char* value);
+    void to_json(json& j, const _array& value);
+    void to_json(json& j, const _object& value);
 
    public:
     // Constructors
@@ -64,17 +78,33 @@ class json {
     json(const _array& value) : type(Type::_array), data(value) {};
     json(const _object& value) : type(Type::_object), data(value) {};
 
+    // Copy and Move Constructors
     json(const json& other) : type(other.type), data(other.data) {};
     json(json&& other) : type(other.type), data(std::move(other.data)) {};
-    json& operator=(const json& other);
-    json& operator=(json&& other);
 
+    // Destructor
     ~json() = default;
 
     // Accessors
     Type get_type() const;
     std::string get_type_as_string() const;
     Value get_data() const;
+
+    template <class T>
+    auto get() -> T {
+        T result;
+        from_json(*this, result);
+        return result;
+    }
+
+    // template <class T>
+    // void get_to(T& value) noexcept(noexcept(json(T()))) {
+    //     if (std::holds_alternative<decltype(json(T()).data)>(data)) {
+    //         value = std::get<T>(data);
+    //     } else {
+    //         from_json(*this, value);
+    //     }
+    // }
 
     auto to_array() const -> _array {
         if (type == Type::_array) {
@@ -97,50 +127,129 @@ class json {
     json& operator[](const char* key);
     json& operator[](size_t index);
 
+    template <class T>
+    json& operator=(const T& value) {
+        to_json(*this, value);
+        return *this;
+    }
+
+    json& operator=(const json& other);
+    json& operator=(json&& other);
+
     // operator overloading
     friend std::ostream& operator<<(std::ostream& os, const json& j);
+    friend bool operator==(const json& lhs, const json& rhs);
+    friend bool operator!=(const json& lhs, const json& rhs);
 
     // Conversion functions
     std::string dump() const;
 };
 // Helper functions
-// void json::from_json(const json& j, _null& value) { value = _null(); }
+void json::from_json(const json& j, _null& value) { value = _null(); }
 
-// void json::from_json(const json& j, _bool& value) {
-//     if (std::holds_alternative<_bool>(j.data)) {
-//         value = std::get<_bool>(j.data);
-//     }
-// }
+void json::from_json(const json& j, bool& value) {
+    if (j.type == Type::_bool) {
+        value = std::get<_bool>(j.data);
+    }
+}
 
-// void json::from_json(const json& j, _int& value) {
-//     if (std::holds_alternative<_int>(j.data)) {
-//         value = std::get<_int>(j.data);
-//     }
-// }
+void json::from_json(const json& j, int& value) {
+    if (j.type == Type::_int) {
+        value = static_cast<int>(std::get<_int>(j.data));
+    }
+}
 
-// void json::from_json(const json& j, _float& value) {
-//     if (std::holds_alternative<_float>(j.data)) {
-//         value = std::get<_float>(j.data);
-//     }
-// }
+void json::from_json(const json& j, int64_t& value) {
+    if (j.type == Type::_int) {
+        value = std::get<_int>(j.data);
+    }
+}
 
-// void json::from_json(const json& j, _string& value) {
-//     if (std::holds_alternative<_string>(j.data)) {
-//         value = std::get<_string>(j.data);
-//     }
-// }
+void json::from_json(const json& j, float& value) {
+    if (j.type == Type::_float) {
+        value = static_cast<float>(std::get<_float>(j.data));
+    }
+}
 
-// void json::from_json(const json& j, _array& value) {
-//     if (std::holds_alternative<_array>(j.data)) {
-//         value = std::get<_array>(j.data);
-//     }
-// }
+void json::from_json(const json& j, double& value) {
+    if (j.type == Type::_float) {
+        value = std::get<_float>(j.data);
+    }
+}
 
-// void json::from_json(const json& j, _object& value) {
-//     if (std::holds_alternative<_object>(j.data)) {
-//         value = std::get<_object>(j.data);
-//     }
-// }
+void json::from_json(const json& j, std::string& value) {
+    if (j.type == Type::_string) {
+        value = std::get<_string>(j.data);
+    }
+}
+
+void json::from_json(const json& j, char* value) {
+    if (j.type == Type::_string) {
+        value = const_cast<char*>(std::get<_string>(j.data).c_str());
+    }
+}
+
+void json::from_json(const json& j, _array& value) {
+    if (j.type == Type::_array) {
+        value = std::get<_array>(j.data);
+    }
+}
+
+void json::from_json(const json& j, _object& value) {
+    if (j.type == Type::_object) {
+        value = std::get<_object>(j.data);
+    }
+}
+
+void json::to_json(json& j, const _null& value) {
+    j.data = value;
+    j.type = Type::_null;
+}
+
+void json::to_json(json& j, bool value) {
+    j.data = value;
+    j.type = Type::_bool;
+}
+
+void json::to_json(json& j, int value) {
+    j.data = static_cast<int64_t>(value);
+    j.type = Type::_int;
+}
+
+void json::to_json(json& j, int64_t value) {
+    j.data = value;
+    j.type = Type::_int;
+}
+
+void json::to_json(json& j, float value) {
+    j.data = static_cast<double>(value);
+    j.type = Type::_float;
+}
+
+void json::to_json(json& j, double value) {
+    j.data = value;
+    j.type = Type::_float;
+}
+
+void json::to_json(json& j, const std::string& value) {
+    j.data = value;
+    j.type = Type::_string;
+}
+
+void json::to_json(json& j, const char* value) {
+    j.data = static_cast<std::string>(value);
+    j.type = Type::_string;
+}
+
+void json::to_json(json& j, const _array& value) {
+    j.data = value;
+    j.type = Type::_array;
+}
+
+void json::to_json(json& j, const _object& value) {
+    j.data = value;
+    j.type = Type::_object;
+}
 
 // Constructors
 json& json::operator=(const json& other) {
@@ -207,6 +316,16 @@ std::ostream& operator<<(std::ostream& os, const json& j) {
     return os;
 }
 
+bool operator==(const json& lhs, const json& rhs) {
+    if (lhs.type == rhs.type && lhs.data == rhs.data) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool operator!=(const json& lhs, const json& rhs) { return !(lhs == rhs); }
+
 // Conversion functions
 std::string json::dump() const {
     std::string result;
@@ -245,13 +364,12 @@ std::string json::dump() const {
     return result;
 }
 
-// out of class functions
+// out of class and parse function
 std::string remove_whitespace(const std::string& str) {
     std::regex re("\\s+");
     return std::regex_replace(str, re, "");
 }
 
-// Parse function
 json parse(const std::string& str, size_t& index);
 
 json parse_null(const std::string& str, size_t& index) {
@@ -372,6 +490,9 @@ json parse(const std::string& str, size_t& index) {
 }
 
 json parse(const std::string& str) {
+    if (str.empty()) {
+        return json();
+    }
     std::string json_str = remove_whitespace(str);
     size_t index = 0;
     return parse(json_str, index);
@@ -382,22 +503,5 @@ json parse(const char* str) { return parse(std::string(str)); }
 json make_json(const std::string& str) { return parse(str); }
 
 json make_json(const char* str) { return parse(str); }
-
-// myjson::get<type>(j)
-// template <class T>
-// T get(const json& j) {
-//     return std::visit(
-//         [](auto&& arg) -> T {
-//             using ArgType = decltype(arg);
-//             if constexpr (std::is_same_v<T, ArgType>) {
-//                 return arg;
-//             } else {
-//                 T result;
-//                 from_json(arg, result);
-//                 return result;
-//             }
-//         },
-//         j.get_data());
-// }
 
 }  // namespace myjson
