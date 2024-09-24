@@ -3,6 +3,26 @@
 #include <iostream>
 #include <vector>
 
+// Custom type conversion
+// required to_json and from_json
+class Person {
+   public:
+    std::string name;
+    int age;
+};
+
+namespace myjson {
+void to_json(myjson::json &j, const Person &p) {
+    std::string tmp = p.name + "," + std::to_string(p.age);
+    j = tmp;
+}
+
+void from_json(const myjson::json &j, Person &p) {
+    p.name = j["name"].get<std::string>();
+    p.age = j["age"].get<int64_t>();
+}
+}  // namespace myjson
+
 int main() {
     // myjson::_null
     // null
@@ -53,6 +73,40 @@ int main() {
     // assign value interface (only for myjson::_array)
     // The available types are myjson::_null, bool, int, int64_t, float, double,
     // std::string, myjson::_array, and myjson::_object.
+    j1[0] = 2;
+    j1[1] = 3;
+    j1[2] = 4;
+    std::cout << "j1: " << j1 << std::endl;
 
+    // push value interface (only for myjson::_array)
+    // The available types are myjson::_null, bool, int, int64_t, float, double,
+    // std::string, myjson::_array, and myjson::_object.
+    j1.push("agefa");
+    std::cout << "j1: " << j1 << std::endl;
+
+    // to_array interface
+    // return std::vector<json>
+    auto arr = j1.to_array();
+    for (auto &i : arr) {
+        std::cout << i << std::endl;
+    }
+
+    // to_map interface
+    // return std::map<std::string, json>
+    auto map = j2.to_map();
+    for (auto &i : map) {
+        std::cout << i.first << ": " << i.second << std::endl;
+    }
+
+    // Custom type conversion (only for j["key"] = custom_type or j[index] =
+    // custom_type)
+    Person p;
+    p.name = "huizhihua";
+    p.age = 25;
+
+    myjson::json j_person =
+        myjson::parse("{\"key1\": 1, \"key2\": \"value2\"}");
+    j_person["person"] = p;
+    std::cout << "j_person: " << j_person << std::endl;
     return 0;
 }

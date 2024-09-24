@@ -31,40 +31,39 @@ using _string = std::string;
 using _array = std::vector<json>;
 using _object = std::map<std::string, json>;
 
+void from_json(const json& j, _null& value);
+void from_json(const json& j, bool& value);
+void from_json(const json& j, int& value);
+void from_json(const json& j, int64_t& value);
+void from_json(const json& j, float& value);
+void from_json(const json& j, double& value);
+void from_json(const json& j, std::string& value);
+void from_json(const json& j, char* value);
+void from_json(const json& j, _array& value);
+void from_json(const json& j, _object& value);
+
+void to_json(json& j, const _null& value);
+void to_json(json& j, bool value);
+void to_json(json& j, int value);
+void to_json(json& j, int64_t value);
+void to_json(json& j, float value);
+void to_json(json& j, double value);
+void to_json(json& j, const std::string& value);
+void to_json(json& j, const char* value);
+void to_json(json& j, const _array& value);
+void to_json(json& j, const _object& value);
+
 class json {
    public:
     using Value =
         std::variant<_null, _bool, _int, _float, _string, _array, _object>;
     enum class Type { _null, _bool, _int, _float, _string, _array, _object };
 
-   private:
     Type type;   // Type of json object
     Value data;  // Data stored in json object
 
     // Helper functions
-    void from_json(const json& j, _null& value);
-    void from_json(const json& j, bool& value);
-    void from_json(const json& j, int& value);
-    void from_json(const json& j, int64_t& value);
-    void from_json(const json& j, float& value);
-    void from_json(const json& j, double& value);
-    void from_json(const json& j, std::string& value);
-    void from_json(const json& j, char* value);
-    void from_json(const json& j, _array& value);
-    void from_json(const json& j, _object& value);
 
-    void to_json(json& j, const _null& value);
-    void to_json(json& j, bool value);
-    void to_json(json& j, int value);
-    void to_json(json& j, int64_t value);
-    void to_json(json& j, float value);
-    void to_json(json& j, double value);
-    void to_json(json& j, const std::string& value);
-    void to_json(json& j, const char* value);
-    void to_json(json& j, const _array& value);
-    void to_json(json& j, const _object& value);
-
-   public:
     // Constructors
     json() : type(Type::_null), data(_null()) {};
     json(bool value) : type(Type::_bool), data(value) {};
@@ -106,6 +105,14 @@ class json {
     //     }
     // }
 
+    void push(const json& value) {
+        if (type == Type::_array) {
+            std::get<_array>(data).push_back(value);
+        } else {
+            throw std::runtime_error("Error: json is not an array");
+        }
+    }
+
     auto to_array() const -> _array {
         if (type == Type::_array) {
             return std::get<_array>(data);
@@ -125,7 +132,13 @@ class json {
     // Operators
     json& operator[](const std::string& key);
     json& operator[](const char* key);
+    json& operator[](int index);
     json& operator[](size_t index);
+
+    json operator[](const std::string& key) const;
+    json operator[](const char* key) const;
+    json operator[](int index) const;
+    json operator[](size_t index) const;
 
     template <class T>
     json& operator=(const T& value) {
@@ -145,110 +158,110 @@ class json {
     std::string dump() const;
 };
 // Helper functions
-void json::from_json(const json& j, _null& value) { value = _null(); }
+void from_json(const json& j, _null& value) { value = _null(); }
 
-void json::from_json(const json& j, bool& value) {
-    if (j.type == Type::_bool) {
+void from_json(const json& j, bool& value) {
+    if (j.type == json::Type::_bool) {
         value = std::get<_bool>(j.data);
     }
 }
 
-void json::from_json(const json& j, int& value) {
-    if (j.type == Type::_int) {
+void from_json(const json& j, int& value) {
+    if (j.type == json::Type::_int) {
         value = static_cast<int>(std::get<_int>(j.data));
     }
 }
 
-void json::from_json(const json& j, int64_t& value) {
-    if (j.type == Type::_int) {
+void from_json(const json& j, int64_t& value) {
+    if (j.type == json::Type::_int) {
         value = std::get<_int>(j.data);
     }
 }
 
-void json::from_json(const json& j, float& value) {
-    if (j.type == Type::_float) {
+void from_json(const json& j, float& value) {
+    if (j.type == json::Type::_float) {
         value = static_cast<float>(std::get<_float>(j.data));
     }
 }
 
-void json::from_json(const json& j, double& value) {
-    if (j.type == Type::_float) {
+void from_json(const json& j, double& value) {
+    if (j.type == json::Type::_float) {
         value = std::get<_float>(j.data);
     }
 }
 
-void json::from_json(const json& j, std::string& value) {
-    if (j.type == Type::_string) {
+void from_json(const json& j, std::string& value) {
+    if (j.type == json::Type::_string) {
         value = std::get<_string>(j.data);
     }
 }
 
-void json::from_json(const json& j, char* value) {
-    if (j.type == Type::_string) {
+void from_json(const json& j, char* value) {
+    if (j.type == json::Type::_string) {
         value = const_cast<char*>(std::get<_string>(j.data).c_str());
     }
 }
 
-void json::from_json(const json& j, _array& value) {
-    if (j.type == Type::_array) {
+void from_json(const json& j, _array& value) {
+    if (j.type == json::Type::_array) {
         value = std::get<_array>(j.data);
     }
 }
 
-void json::from_json(const json& j, _object& value) {
-    if (j.type == Type::_object) {
+void from_json(const json& j, _object& value) {
+    if (j.type == json::Type::_object) {
         value = std::get<_object>(j.data);
     }
 }
 
-void json::to_json(json& j, const _null& value) {
+void to_json(json& j, const _null& value) {
     j.data = value;
-    j.type = Type::_null;
+    j.type = json::Type::_null;
 }
 
-void json::to_json(json& j, bool value) {
+void to_json(json& j, bool value) {
     j.data = value;
-    j.type = Type::_bool;
+    j.type = json::Type::_bool;
 }
 
-void json::to_json(json& j, int value) {
+void to_json(json& j, int value) {
     j.data = static_cast<int64_t>(value);
-    j.type = Type::_int;
+    j.type = json::Type::_int;
 }
 
-void json::to_json(json& j, int64_t value) {
+void to_json(json& j, int64_t value) {
     j.data = value;
-    j.type = Type::_int;
+    j.type = json::Type::_int;
 }
 
-void json::to_json(json& j, float value) {
+void to_json(json& j, float value) {
     j.data = static_cast<double>(value);
-    j.type = Type::_float;
+    j.type = json::Type::_float;
 }
 
-void json::to_json(json& j, double value) {
+void to_json(json& j, double value) {
     j.data = value;
-    j.type = Type::_float;
+    j.type = json::Type::_float;
 }
 
-void json::to_json(json& j, const std::string& value) {
+void to_json(json& j, const std::string& value) {
     j.data = value;
-    j.type = Type::_string;
+    j.type = json::Type::_string;
 }
 
-void json::to_json(json& j, const char* value) {
+void to_json(json& j, const char* value) {
     j.data = static_cast<std::string>(value);
-    j.type = Type::_string;
+    j.type = json::Type::_string;
 }
 
-void json::to_json(json& j, const _array& value) {
+void to_json(json& j, const _array& value) {
     j.data = value;
-    j.type = Type::_array;
+    j.type = json::Type::_array;
 }
 
-void json::to_json(json& j, const _object& value) {
+void to_json(json& j, const _object& value) {
     j.data = value;
-    j.type = Type::_object;
+    j.type = json::Type::_object;
 }
 
 // Constructors
@@ -298,16 +311,49 @@ json& json::operator[](const std::string& key) {
 
 json& json::operator[](const char* key) { return operator[](std::string(key)); }
 
+json& json::operator[](int index) {
+    if (index < 0) {
+        throw std::runtime_error("Error: index out of range");
+    }
+    return operator[](static_cast<size_t>(index));
+}
+
 json& json::operator[](size_t index) {
     if (type != Type::_array) {
         throw std::runtime_error("Error: json is not an array");
     }
-    auto arr = std::get<_array>(data);
-    if (index >= arr.size()) {
+    if (index >= std::get<_array>(data).size()) {
         throw std::runtime_error("Error: index out of range");
-    } else {
-        return arr[index];
     }
+    return std::get<_array>(data)[index];
+}
+
+json json::operator[](const std::string& key) const {
+    if (type != Type::_object) {
+        throw std::runtime_error("Error: json is not an object");
+    }
+    return std::get<_object>(data).at(key);
+}
+
+json json::operator[](const char* key) const {
+    return operator[](std::string(key));
+}
+
+json json::operator[](int index) const {
+    if (index < 0) {
+        throw std::runtime_error("Error: index out of range");
+    }
+    return operator[](static_cast<size_t>(index));
+}
+
+json json::operator[](size_t index) const {
+    if (type != Type::_array) {
+        throw std::runtime_error("Error: json is not an array");
+    }
+    if (index >= std::get<_array>(data).size()) {
+        throw std::runtime_error("Error: index out of range");
+    }
+    return std::get<_array>(data).at(index);
 }
 
 // operator overloading
