@@ -13,8 +13,9 @@ class Person {
 
 namespace myjson {
 void to_json(myjson::json &j, const Person &p) {
-    std::string tmp = p.name + "," + std::to_string(p.age);
-    j = tmp;
+    j = myjson::json_init();  // costum type must be initialized
+    j["name"] = p.name;
+    j["age"] = p.age;
 }
 
 void from_json(const myjson::json &j, Person &p) {
@@ -48,6 +49,10 @@ int main() {
         myjson::make_json("{\"key1\": 1, \"key2\": \"value2\"}");
 
     // Standard Initialization Interface
+    myjson::json j_default_null;  // default type is myjson::_null
+    myjson::json j_default_object =
+        myjson::json_init();  // default type is myjson::_object
+
     myjson::json j1 = myjson::parse("[1, 2, 3]");
     myjson::json j2 = myjson::make_json("{\"key1\": 1, \"key2\": \"value2\"}");
 
@@ -55,13 +60,21 @@ int main() {
     std::cout << "j1: " << j1 << std::endl;
     std::cout << "j2: " << j2 << std::endl;
 
-    // Get value interface
+    // Get value interface 1
     // The available types are myjson::_null, bool, int, int64_t, float, double,
     // std::string, myjson::_array, and myjson::_object.
     int key1 = j2["key1"].get<int64_t>();
     std::string key2 = j2["key2"].get<std::string>();
     std::cout << "key1: " << key1 << std::endl;
     std::cout << "key2: " << key2 << std::endl;
+
+    // Get value interface 2
+    int64_t key1_2 = 0;
+    std::string key2_2 = "";
+    j2["key1"].get_to<int64_t>(key1_2);
+    j2["key2"].get_to<std::string>(key2_2);
+    std::cout << "key1_2: " << key1_2 << std::endl;
+    std::cout << "key2_2: " << key2_2 << std::endl;
 
     // assign value interface (only for myjson::_object)
     // The available types are myjson::_null, bool, int, int64_t, float, double,
@@ -82,18 +95,25 @@ int main() {
     // The available types are myjson::_null, bool, int, int64_t, float, double,
     // std::string, myjson::_array, and myjson::_object.
     j1.push("agefa");
-    std::cout << "j1: " << j1 << std::endl;
+    std::cout << "after push \"agefa\", j1: " << j1 << std::endl;
+
+    // pop value interface (only for myjson::_array)
+    j1.pop();
+    std::cout << "after pop, j1: " << j1 << std::endl;
 
     // to_array interface
     // return std::vector<json>
     auto arr = j1.to_array();
+    std::cout << "arr: ";
     for (auto &i : arr) {
-        std::cout << i << std::endl;
+        std::cout << i << " ";
     }
+    std::cout << std::endl;
 
     // to_map interface
     // return std::map<std::string, json>
     auto map = j2.to_map();
+    std::cout << "map: " << std::endl;
     for (auto &i : map) {
         std::cout << i.first << ": " << i.second << std::endl;
     }
@@ -108,5 +128,9 @@ int main() {
         myjson::parse("{\"key1\": 1, \"key2\": \"value2\"}");
     j_person["person"] = p;
     std::cout << "j_person: " << j_person << std::endl;
+
+    // remove interface
+    j_person.remove("person");
+    std::cout << "after remove \"person\", j_person: " << j_person << std::endl;
     return 0;
 }
