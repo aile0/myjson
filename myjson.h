@@ -6,7 +6,7 @@
  *              Float, String, Array, and Object. The library also   *
  *              provides some helper functions to handle JSON data.  *
  * Author: ile                                                       *
- * Date: 2024-09-22                                                  *
+ * Date: 2024-09-26                                                  *
  ********************************************************************/
 #pragma once
 
