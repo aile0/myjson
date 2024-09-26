@@ -39,6 +39,7 @@ int main() {
     myjson::json j_float = myjson::make_json("1.1");
     // myjson::json j_string
     // std::string
+    // only support \uxxxx and space
     myjson::json j_string = myjson::make_json("\"string\"");
     // myjson::json j_array
     // std::vector<json>
@@ -54,7 +55,8 @@ int main() {
         myjson::json_init();  // default type is myjson::_object
 
     myjson::json j1 = myjson::parse("[1, 2, 3]");
-    myjson::json j2 = myjson::make_json("{\"key1\": 1, \"key2\": \"value2\"}");
+    myjson::json j2 =
+        myjson::make_json("{\"key1\": 1, \"key2\": \"value2 \\u20AC\"}");
 
     // Output interface
     std::cout << "j1: " << j1 << std::endl;

@@ -461,9 +461,66 @@ std::string json::dump() const {
 }
 
 // out of class and parse function
+std::string remove_unwanted_whitespace(const std::string& str) {
+    std::string result;
+    bool inside_quotes = false;
+
+    for (size_t i = 0; i < str.size(); ++i) {
+        char current_char = str[i];
+        // if current character is a quote, toggle whether we are inside quotes
+        if (current_char == '\"') {
+            inside_quotes = !inside_quotes;
+            result += current_char;
+        } else if (inside_quotes ||
+                   !isspace(static_cast<unsigned char>(current_char))) {
+            // inside quotes or current character is not a space
+            result += current_char;
+        } else if (current_char == ' ' && !inside_quotes) {
+            result += "";
+        }
+    }
+    return result;
+}
+
 std::string remove_whitespace(const std::string& str) {
-    std::regex re("\\s+");
-    return std::regex_replace(str, re, "");
+    return remove_unwanted_whitespace(str);
+}
+
+std::string code_point_to_utf8(char32_t code_point) {
+    if (code_point <= 0x7F) {
+        return std::string(1, static_cast<char>(code_point));
+    } else if (code_point <= 0x7FF) {
+        return std::string{static_cast<char>(0xC0 | ((code_point >> 6) & 0x1F)),
+                           static_cast<char>(0x80 | (code_point & 0x3F))};
+    } else if (code_point <= 0xFFFF) {
+        return std::string{
+            static_cast<char>(0xE0 | ((code_point >> 12) & 0x0F)),
+            static_cast<char>(0x80 | ((code_point >> 6) & 0x3F)),
+            static_cast<char>(0x80 | (code_point & 0x3F))};
+    } else {
+        return std::string{
+            static_cast<char>(0xF0 | ((code_point >> 18) & 0x07)),
+            static_cast<char>(0x80 | ((code_point >> 12) & 0x3F)),
+            static_cast<char>(0x80 | ((code_point >> 6) & 0x3F)),
+            static_cast<char>(0x80 | (code_point & 0x3F))};
+    }
+}
+
+std::string& cvt_escape_char(std::string& str) {
+    std::regex re("\\\\u[0-9a-fA-F]{4}");
+    std::smatch match;
+    while (std::regex_search(str, match, re)) {
+        std::string code_point_str = match.str().substr(2);
+        try {
+            char32_t code_point = std::stoul(code_point_str, nullptr, 16);
+            std::string utf8_str = code_point_to_utf8(code_point);
+            str.replace(match.position(), match.length(), utf8_str);
+        } catch (const std::exception& e) {
+            throw std::runtime_error(
+                "At cvt_escape_char(): invalid escape character");
+        }
+    }
+    return str;
 }
 
 json parse(const std::string& str, size_t& index);
@@ -500,7 +557,9 @@ json parse_string(const std::string& str, size_t& index) {
         size_t start = index + 1;
         size_t end = str.find('\"', start);
         index = end + 1;
-        return json(str.substr(start, end - start));
+        std::string result = str.substr(start, end - start);
+        cvt_escape_char(result);
+        return json(result);
     } catch (std::exception& e) {
         throw std::runtime_error("At parse_string(): invalid string value");
     }
@@ -576,6 +635,10 @@ json parse_number(const std::string& str, size_t& index) {
     }
 }
 
+// json parse_escape(const std::string& str, size_t& index) {
+
+// }
+
 json parse(const std::string& str, size_t& index) {
     try {
         if (str[index] == 'n') {
@@ -592,6 +655,8 @@ json parse(const std::string& str, size_t& index) {
             return parse_object(str, index);
         } else if (std::isdigit(str[index]) || str[index] == '-') {
             return parse_number(str, index);
+            // } else if (str[index] == '\\') {
+            //     return parse_escape(str, index);
         } else {
             throw std::runtime_error("Error: Unknown character");
         }
