@@ -296,7 +296,7 @@ auto json::to_array() const -> _array {
     if (type == Type::_array) {
         return std::get<_array>(data);
     } else {
-        throw std::runtime_error("Error: json is not an array");
+        throw std::runtime_error("At to_array(): json is not an array");
     }
 }
 
@@ -304,7 +304,7 @@ auto json::to_map() const -> _object {
     if (type == Type::_object) {
         return std::get<_object>(data);
     } else {
-        throw std::runtime_error("Error: json is not an object");
+        throw std::runtime_error("At to_map(): json is not an object");
     }
 }
 
@@ -313,7 +313,7 @@ void json::push(const json& value) {
     if (type == Type::_array) {
         std::get<_array>(data).push_back(value);
     } else {
-        throw std::runtime_error("Error: json is not an array");
+        throw std::runtime_error("At push(): json is not an array");
     }
 }
 
@@ -321,7 +321,7 @@ void json::pop() {
     if (type == Type::_array) {
         std::get<_array>(data).pop_back();
     } else {
-        throw std::runtime_error("Error: json is not an array");
+        throw std::runtime_error("At pop(): json is not an array");
     }
 }
 
@@ -329,14 +329,14 @@ void json::remove(const std::string& key) {
     if (type == Type::_object) {
         std::get<_object>(data).erase(key);
     } else {
-        throw std::runtime_error("Error: json is not an object");
+        throw std::runtime_error("At remove(): json is not an object");
     }
 }
 
 // Operators
 json& json::operator[](const std::string& key) {
     if (type != Type::_object) {
-        throw std::runtime_error("Error: json is not an object");
+        throw std::runtime_error("At operator[]: json is not an object");
     }
     return std::get<_object>(data)[key];
 }
@@ -345,24 +345,24 @@ json& json::operator[](const char* key) { return operator[](std::string(key)); }
 
 json& json::operator[](int index) {
     if (index < 0) {
-        throw std::runtime_error("Error: index out of range");
+        throw std::runtime_error("At operator[]: index is negative");
     }
     return operator[](static_cast<size_t>(index));
 }
 
 json& json::operator[](size_t index) {
     if (type != Type::_array) {
-        throw std::runtime_error("Error: json is not an array");
+        throw std::runtime_error("At operator[]: json is not an array");
     }
     if (index >= std::get<_array>(data).size()) {
-        throw std::runtime_error("Error: index out of range");
+        throw std::runtime_error("At operator[]: index out of range");
     }
     return std::get<_array>(data)[index];
 }
 
 json json::operator[](const std::string& key) const {
     if (type != Type::_object) {
-        throw std::runtime_error("Error: json is not an object");
+        throw std::runtime_error("At operator[]: json is not an object");
     }
     return std::get<_object>(data).at(key);
 }
@@ -373,17 +373,17 @@ json json::operator[](const char* key) const {
 
 json json::operator[](int index) const {
     if (index < 0) {
-        throw std::runtime_error("Error: index out of range");
+        throw std::runtime_error("At operator[]: index is negative");
     }
     return operator[](static_cast<size_t>(index));
 }
 
 json json::operator[](size_t index) const {
     if (type != Type::_array) {
-        throw std::runtime_error("Error: json is not an array");
+        throw std::runtime_error("At operator[]: json is not an array");
     }
     if (index >= std::get<_array>(data).size()) {
-        throw std::runtime_error("Error: index out of range");
+        throw std::runtime_error("At operator[]: index out of range");
     }
     return std::get<_array>(data).at(index);
 }
@@ -473,7 +473,7 @@ json parse_null(const std::string& str, size_t& index) {
         index += 4;
         return json();
     } else {
-        throw std::runtime_error("Error: invalid null value");
+        throw std::runtime_error("At parse_null(): invalid null value");
     }
 }
 
@@ -482,7 +482,7 @@ json parse_true(const std::string& str, size_t& index) {
         index += 4;
         return json(true);
     } else {
-        throw std::runtime_error("Error: invalid true value");
+        throw std::runtime_error("At parse_true(): invalid true value");
     }
 }
 
@@ -491,7 +491,7 @@ json parse_false(const std::string& str, size_t& index) {
         index += 5;
         return json(false);
     } else {
-        throw std::runtime_error("Error: invalid false value");
+        throw std::runtime_error("At parse_false(): invalid false value");
     }
 }
 
@@ -502,7 +502,7 @@ json parse_string(const std::string& str, size_t& index) {
         index = end + 1;
         return json(str.substr(start, end - start));
     } catch (std::exception& e) {
-        throw std::runtime_error("Error: invalid string value");
+        throw std::runtime_error("At parse_string(): invalid string value");
     }
 }
 
@@ -519,7 +519,7 @@ json parse_array(const std::string& str, size_t& index) {
         index++;
         return json(arr);
     } catch (std::exception& e) {
-        throw std::runtime_error("Error: invalid array value");
+        throw std::runtime_error("At parse_array(): invalid array value");
     }
 }
 
@@ -539,7 +539,7 @@ json parse_object(const std::string& str, size_t& index) {
         index++;
         return json(obj);
     } catch (std::exception& e) {
-        throw std::runtime_error("Error: invalid object value");
+        throw std::runtime_error("At parse_object(): invalid object value");
     }
 }
 
@@ -566,13 +566,13 @@ json parse_number(const std::string& str, size_t& index) {
                 int64_t num = std::stoll(str.substr(start, index - start));
                 return json(num);
             } catch (const std::exception& e) {
-                throw std::runtime_error("Error: invalid number value");
+                throw std::runtime_error("At parse_number(): stoll error");
             }
         }
 
         return json(std::stod(str.substr(start, index - start)));
     } catch (const std::exception& e) {
-        throw std::runtime_error("Error: invalid number value");
+        throw std::runtime_error("At parse_number(): invalid number value");
     }
 }
 
